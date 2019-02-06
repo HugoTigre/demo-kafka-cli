@@ -1,0 +1,48 @@
+<!-- https://www.playframework.com/documentation/latest/SettingsLogger --><!-- https://logback.qos.ch/manual/configuration.html --><!--
+    configuration element attributes:
+    scan="true" -> logback will automatically scan the file for changes
+    scanPeriod="30 seconds"
+    packagingData="true" -> will add packaging data to output (useful for debugging API's version)
+-->
+<configuration>
+
+    <property name = "LOG_NAME" value = "demo-kafka-cli"/>
+
+    <!-- Setting context name helps distinguish between different applications. Can be used in the patterns (%contextName) -->
+    <contextName>${LOG_NAME}</contextName>
+
+    <conversionRule conversionWord = "coloredLevel" converterClass = "play.api.libs.logback.ColoredLevel"
+                    immediateFlush = "false"/>
+
+    <!-- STDOUT -->
+    <appender name = "STDOUT" class = "ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{HH:mm:ss:SSS} %highlight(%.-3level) %msg [%yellow(%logger{36}.%M %L)] %magenta([%thread]) %n%xException{60}</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+        Loggers
+    -->
+    <!-- akka loggers -->
+    <!--<logger name = "akka" level = "INFO"/>-->
+    <!-- other loggers -->
+    <logger name = "ch.qos.logback" level = "WARN"/>
+    <logger name = "javax.mail" level = "INFO"/>
+    <logger name = "sun.security" level = "INFO"/>
+    <logger name = "javax.management" level = "INFO"/>
+    <logger name = "net.schmizz" level = "WARN"/>
+    <logger name = "net.schmizz.sshj.DefaultConfig" level = "ERROR"/>
+
+    <!--
+        Add appender(s) to root
+    -->
+    <root level = "info">
+        <appender-ref ref = "STDOUT"/>
+    </root>
+
+
+    <!-- Gracefully terminate logback when JVM terminates -->
+    <shutdownHook class = "ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+</configuration>
