@@ -1,5 +1,6 @@
 package com.pakybytes.demo.kafkacli.delivery
 
+import com.pakybytes.demo.kafkacli.data.KafkaProps
 import com.pakybytes.demo.kafkacli.di.ServiceLocator
 import org.slf4j.LoggerFactory
 import java.util.concurrent.*
@@ -13,32 +14,28 @@ object Main {
     private val executerService = Executors.newCachedThreadPool()
     private val schedulerService = Executors.newScheduledThreadPool(1)
 
-    private const val TOPIC = "topic-1"
-    private const val LIFECYLCE_TIMEOUT = 10000L
-
 
     @JvmStatic
     fun main(args: Array<String>) {
 
         // Get Services
+        val kafkaAdmin = ServiceLocator.get().provideKafkaAdmin()
         val producerService = ServiceLocator.get().provideProducerService()
         val consumerService = ServiceLocator.get().provideConsumerService()
 
+        kafkaAdmin.createTopicIfNotExists()
+
         runFor(
                 Supplier {
-                    producerService.startSending(
-                            producerService.buildProducer(),
-                            TOPIC)
+                    producerService.startSending()
                 },
                 Supplier {
-                    consumerService.startReading(
-                            consumerService.buildConsumer(),
-                            TOPIC)
+                    consumerService.startReading()
                 },
-                LIFECYLCE_TIMEOUT
+                KafkaProps.LIFECYLCE_TIMEOUT
         )
 
-        Thread.sleep(LIFECYLCE_TIMEOUT + 1000)
+        Thread.sleep(KafkaProps.LIFECYLCE_TIMEOUT + 1000)
         executerService.shutdown()
         schedulerService.shutdown()
     }
