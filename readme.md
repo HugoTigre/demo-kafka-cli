@@ -1,4 +1,4 @@
-# Kafka Client Demo
+# Kafka Asynchronous Client Demo
 
 This is an example program that:
 
@@ -6,8 +6,12 @@ This is an example program that:
 - uses Kafka Consumer to read the data from the same instance and topic
 - runs both asynchronously to simulate the producer and consumer has separate instances
 - runs for about 10 seconds and sends/reads each second, 
-to keep it running for a longer period of time, just change the constant ```LIFECYLCE_TIMEOUT``` in ```Main.java```
+to keep it running for a longer period of time, just change the constant ```LIFECYLCE_TIMEOUT``` in ```KafkaAdmin.kt```
+- encapsulates the commit operation in a retry policy, this avoids the automatic commit,
+which is important if you want to assure that a commit is obly processed after you successfuly 
+processed the recseived data from a consumer.
 
 ## How to execute
 
-- this is a gradle project, just import it to your favourite IDE and run it
+    gradle clean build
+    gradle run
