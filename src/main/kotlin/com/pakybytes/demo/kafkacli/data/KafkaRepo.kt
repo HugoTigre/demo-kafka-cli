@@ -5,6 +5,7 @@ import com.pakybytes.demo.kafkacli.core.services.KafkaRepoGateway
 import net.jodah.failsafe.Failsafe
 import net.jodah.failsafe.RetryPolicy
 import net.jodah.failsafe.function.CheckedRunnable
+import org.apache.kafka.clients.admin.KafkaAdminClient
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -12,6 +13,7 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.concurrent.Future
 
 
 class KafkaRepo : KafkaRepoGateway {
@@ -48,11 +51,11 @@ class KafkaRepo : KafkaRepoGateway {
      *  sends the msg.
      */
     override
-    fun sendAsync(msg: KafkaMsg) {
+    fun sendAsync(msg: KafkaMsg): Future<RecordMetadata> {
 
         val record = ProducerRecord<String, String>(msg.topic, msg.key, msg.msg)
 
-        producer.send(record, msg.callback)
+        return producer.send(record, msg.callback)
     }
 
 
@@ -73,12 +76,16 @@ class KafkaRepo : KafkaRepoGateway {
 
     /**
      * Commits the offset asynchronously. Uses a retry function in case anything goes wrong
-     * at first try.
+     * at first try. If a RetryPolicy is not passed as a parameter it uses a default one, which
+     * tries 3 times in one minute.
      */
     override
-    fun commitAsync(offsets: Map<TopicPartition, OffsetAndMetadata>) {
+    fun commitAsync(offsets: Map<TopicPartition, OffsetAndMetadata>,
+                    retryPolicy: RetryPolicy<KafkaConsumer<String, String>>?) {
 
-        Failsafe.with<KafkaConsumer<String, String>, RetryPolicy<KafkaConsumer<String, String>>>(this.retryPolicy)
+        val rp = if (retryPolicy == null) this.retryPolicy else retryPolicy
+
+        Failsafe.with<KafkaConsumer<String, String>, RetryPolicy<KafkaConsumer<String, String>>>(rp)
                 .run(CheckedRunnable {
                     consumer.commitAsync(offsets) { offsets1, e -> if (e != null) log.error("Commit failed for offsets {}", offsets1, e) }
                 })
