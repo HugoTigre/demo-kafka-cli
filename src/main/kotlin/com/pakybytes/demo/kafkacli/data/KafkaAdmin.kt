@@ -1,8 +1,8 @@
 package com.pakybytes.demo.kafkacli.data
 
 import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import java.util.*
 
 object KafkaProps {
@@ -64,7 +64,7 @@ class KafkaAdmin {
 
         val props = Properties()
 
-        props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaProps.BOOTSTRAP_SERVER_URL)
+        props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaProps.BOOTSTRAP_SERVER_URL)
 
         return props
     }
