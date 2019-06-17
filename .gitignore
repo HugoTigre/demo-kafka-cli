@@ -9,6 +9,7 @@ cmake-build-*/
 /.idea/
 .idea_modules/
 /bin/
+*.iml
 
 ### Kotlin ###
 # Compiled class file
